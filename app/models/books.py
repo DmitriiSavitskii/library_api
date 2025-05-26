@@ -11,3 +11,4 @@ class Book(Base):
     release_date: Mapped[int | None] = mapped_column(nullable=True)
     isbn: Mapped[str | None] = mapped_column(unique=True, nullable=True)
     copies: Mapped[int] = mapped_column(default=1, nullable=False)
+    description: Mapped[str] = mapped_column(nullable=True)
