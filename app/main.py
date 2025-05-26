@@ -1,14 +1,17 @@
-# from database import async_engine, Base
-# import asyncio
-# from models.books import Book
-# from models.readers import Reader
-# from models.borrows import Borrow
-# from models.users import User
+import uvicorn
+from fastapi import FastAPI
+from app.routes import auth, books, borrows, readers
 
+app = FastAPI()
 
-# async def create_tables():
-#     async with async_engine.begin() as conn:
-#         await conn.run_sync(Base.metadata.drop_all)
-#         # await conn.run_sync(Base.metadata.create_all)
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(books.router, prefix="/books", tags=["books"])
+app.include_router(readers.router, prefix="/readers", tags=["readers"])
+app.include_router(borrows.router, prefix="/borrows", tags=["borrows"])
 
-# asyncio.run(create_tables())
+@app.get("/")
+def home():
+    return {"message": "hello, world"}
+
+if __name__ == "__main__":
+    uvicorn.run("app.main:app", reload=True)
