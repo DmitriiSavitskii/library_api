@@ -1,23 +1,92 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from app.models.readers import Reader
+from app.schemas.readers import ReaderCreate, ReaderUpdate, ReaderOut
+from app.database import SessionDepends
+from app.core.security import get_current_user
+from app.models.users import User
+
 
 router = APIRouter()
 
-@router.post("/")
-def create_reader():
-    return "create_reader"
 
-@router.get("/")
-def get_readers():
-    return "get_readers"
+@router.post("/", response_model=ReaderOut, status_code=status.HTTP_201_CREATED)
+async def create_reader(
+    reader_in: ReaderCreate,
+    session: SessionDepends,
+    current_user: User = Depends(get_current_user)
+):
+    existing = await session.execute(
+        select(Reader).where(
+            Reader.email == reader_in.email))
+    if existing.scalars().first():
+        raise HTTPException(
+            status_code=400,
+            detail="Reader with this email already exists")
 
-@router.get("/{reader_id}")
-def get_reader():
-    return "get_reader"
+    reader = Reader(**reader_in.dict())
+    session.add(reader)
+    await session.commit()
+    await session.refresh(reader)
+    return reader
 
-@router.put("/{reader_id}")
-def update_reader():
-    return "update_reader"
 
-@router.delete("/{reader_id}")
-def delete_reader():
-    return "delete_reader"
+@router.get("/", response_model=list[ReaderOut])
+async def get_readers(
+    session: SessionDepends,
+    current_user: User = Depends(get_current_user)
+):
+    result = await session.execute(select(Reader))
+    return result.scalars().all()
+
+
+@router.get("/{reader_id}", response_model=ReaderOut)
+async def get_reader(
+    reader_id: int,
+    session: SessionDepends,
+    current_user: User = Depends(get_current_user)
+):
+    result = await session.execute(
+        select(Reader).where(Reader.id == reader_id))
+    reader = result.scalars().first()
+    if not reader:
+        raise HTTPException(status_code=404, detail="Reader not found")
+    return reader
+
+
+@router.put("/{reader_id}", response_model=ReaderOut)
+async def update_reader(
+    reader_id: int,
+    reader_update: ReaderUpdate,
+    session: SessionDepends,
+    current_user: User = Depends(get_current_user)
+):
+    result = await session.execute(
+        select(Reader).where(Reader.id == reader_id))
+    reader = result.scalars().first()
+    if not reader:
+        raise HTTPException(status_code=404, detail="Reader not found")
+
+    update_data = reader_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(reader, key, value)
+
+    await session.commit()
+    await session.refresh(reader)
+    return reader
+
+
+@router.delete("/{reader_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_reader(
+    reader_id: int,
+    session: SessionDepends,
+    current_user: User = Depends(get_current_user)
+):
+    result = await session.execute(
+        select(Reader).where(Reader.id == reader_id))
+    reader = result.scalars().first()
+    if not reader:
+        raise HTTPException(status_code=404, detail="Reader not found")
+
+    await session.delete(reader)
+    await session.commit()

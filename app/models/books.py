@@ -1,5 +1,6 @@
 from app.database import Base
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import List
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class Book(Base):
@@ -12,3 +13,5 @@ class Book(Base):
     isbn: Mapped[str | None] = mapped_column(unique=True, nullable=True)
     copies: Mapped[int] = mapped_column(default=1, nullable=False)
     description: Mapped[str] = mapped_column(nullable=True)
+
+    borrows: Mapped[List["Borrow"]] = relationship(back_populates="book")
