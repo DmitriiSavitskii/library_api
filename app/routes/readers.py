@@ -5,12 +5,16 @@ from app.schemas.readers import ReaderCreate, ReaderUpdate, ReaderOut
 from app.database import SessionDepends
 from app.core.security import get_current_user
 from app.models.users import User
+from app.models.books import Book
+from app.models.borrows import Borrow
+from app.schemas.books import BookOut
 
 
 router = APIRouter()
 
 
-@router.post("/", response_model=ReaderOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ReaderOut,
+             status_code=status.HTTP_201_CREATED)
 async def create_reader(
     reader_in: ReaderCreate,
     session: SessionDepends,
@@ -52,6 +56,29 @@ async def get_reader(
     if not reader:
         raise HTTPException(status_code=404, detail="Reader not found")
     return reader
+
+
+@router.get("{reader_id}/borrowed", response_model=list[BookOut])
+async def get_reader_borrowed_books(
+    reader_id: int,
+    session: SessionDepends,
+    current_user: User = Depends(get_current_user)
+):
+
+    result = await session.execute(
+        select(Book).join(Borrow).where(
+            Borrow.reader_id == reader_id,
+            Borrow.return_date.is_(None)
+        )
+    )
+    books = result.scalars().all()
+
+    if not books:
+        raise HTTPException(
+            status_code=404,
+            detail="No active borrowings found for this reader")
+
+    return books
 
 
 @router.put("/{reader_id}", response_model=ReaderOut)
