@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 
@@ -16,11 +16,15 @@ class BookCreate(BookBase):
 
 
 class BookUpdate(BookBase):
-    pass
+    title: Optional[str] = None
+    author: Optional[str] = None
+    release_date: Optional[int] = None
+    isbn: Optional[str] = None
+    copies: Optional[int] = None
+    description: Optional[str] = None
 
 
 class BookOut(BookBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

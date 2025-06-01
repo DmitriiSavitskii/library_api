@@ -28,7 +28,7 @@ async def create_reader(
             status_code=400,
             detail="Reader with this email already exists")
 
-    reader = Reader(**reader_in.dict())
+    reader = Reader(**reader_in.model_dump())
     session.add(reader)
     await session.commit()
     await session.refresh(reader)
@@ -58,7 +58,7 @@ async def get_reader(
     return reader
 
 
-@router.get("{reader_id}/borrowed", response_model=list[BookOut])
+@router.get("/{reader_id}/borrowed", response_model=list[BookOut])
 async def get_reader_borrowed_books(
     reader_id: int,
     session: SessionDepends,

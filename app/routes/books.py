@@ -31,10 +31,7 @@ async def create_book(
 
 
 @router.get("/", response_model=list[BookOut])
-async def list_books(
-    session: SessionDepends,
-    current_user: User = Depends(get_current_user)
-):
+async def list_books(session: SessionDepends):
     result = await session.execute(select(Book))
     return result.scalars().all()
 

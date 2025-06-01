@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy import select
 from app.database import SessionDepends
-from app.schemas.users import UserCreate, UserLogin, Token
+from app.schemas.users import UserCreate, UserLogin, UserOut, Token
 from app.models.users import User
 from app.core.security import hash_password, create_access_token
-from app.core.security import verify_password
+from app.core.security import verify_password, get_current_user
 
 
 router = APIRouter()
@@ -43,3 +43,8 @@ async def login(user_login: UserLogin, session: SessionDepends):
 
     token = create_access_token(data={"sub": user.email})
     return Token(access_token=token)
+
+
+@router.get("/me")
+async def get_me(current_user: UserOut = Depends(get_current_user)):
+    return {"email": current_user.email}

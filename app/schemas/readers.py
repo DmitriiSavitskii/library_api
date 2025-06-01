@@ -1,4 +1,5 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
+from typing import Optional
 
 
 class ReaderBase(BaseModel):
@@ -10,12 +11,12 @@ class ReaderCreate(ReaderBase):
     pass
 
 
-class ReaderUpdate(ReaderBase):
-    pass
+class ReaderUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
 
 
 class ReaderOut(ReaderBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
