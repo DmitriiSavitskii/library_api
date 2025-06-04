@@ -58,29 +58,6 @@ async def get_reader(
     return reader
 
 
-@router.get("/{reader_id}/borrowed", response_model=list[BookOut])
-async def get_reader_borrowed_books(
-    reader_id: int,
-    session: SessionDepends,
-    current_user: User = Depends(get_current_user)
-):
-
-    result = await session.execute(
-        select(Book).join(Borrow).where(
-            Borrow.reader_id == reader_id,
-            Borrow.return_date.is_(None)
-        )
-    )
-    books = result.scalars().all()
-
-    if not books:
-        raise HTTPException(
-            status_code=404,
-            detail="No active borrowings found for this reader")
-
-    return books
-
-
 @router.put("/{reader_id}", response_model=ReaderOut)
 async def update_reader(
     reader_id: int,

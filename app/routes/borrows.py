@@ -7,6 +7,7 @@ from app.models.borrows import Borrow
 from app.models.users import User
 from app.core.security import get_current_user
 from app.schemas.borrows import BorrowBase
+from app.schemas.books import BookOut
 
 
 router = APIRouter()
@@ -71,3 +72,26 @@ async def return_book(
 
     await session.commit()
     return {"message": "Book successfully returned"}
+
+
+@router.get("/{reader_id}", response_model=list[BookOut])
+async def get_reader_borrowed_books(
+    reader_id: int,
+    session: SessionDepends,
+    current_user: User = Depends(get_current_user)
+):
+
+    result = await session.execute(
+        select(Book).join(Borrow).where(
+            Borrow.reader_id == reader_id,
+            Borrow.return_date.is_(None)
+        )
+    )
+    books = result.scalars().all()
+
+    if not books:
+        raise HTTPException(
+            status_code=404,
+            detail="No active borrowings found for this reader")
+
+    return books

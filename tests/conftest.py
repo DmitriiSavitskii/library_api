@@ -8,7 +8,7 @@ import uuid
 from app.main import app
 from app.database import Base, get_session
 
-TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5433/library_postgres_test"
+TEST_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@postgres_test:5432/library_postgres_test"
 
 
 @pytest.fixture(scope="session")
@@ -68,7 +68,6 @@ async def registered_user(client: AsyncClient, user_data):
         "user_data": user_data
     }
 
-
 @pytest_asyncio.fixture
 async def test_reader(client: AsyncClient, registered_user):
     headers = registered_user["headers"]
@@ -76,7 +75,8 @@ async def test_reader(client: AsyncClient, registered_user):
         "name": "Test Reader",
         "email": "reader@example.com"
     }
-    response = await client.post("/readers/", json=reader_data, headers=headers)
+    response = await client.post(
+        "/readers/", json=reader_data, headers=headers)
     return response.json()
 
 
@@ -95,8 +95,10 @@ async def test_books(client: AsyncClient, registered_user):
         books.append(response.json())
     return books
 
+
 @pytest_asyncio.fixture
-async def book_with_no_copies(client: AsyncClient, registered_user, test_reader):
+async def book_with_no_copies(client: AsyncClient,
+                              registered_user, test_reader):
     headers = registered_user["headers"]
     book_data = {
         "title": "No Copies Book",
@@ -107,7 +109,6 @@ async def book_with_no_copies(client: AsyncClient, registered_user, test_reader)
     response = await client.post("/books/", json=book_data, headers=headers)
     book = response.json()
 
-    # Сразу занять эту единственную копию
     await client.post("/borrows/", json={
         "book_id": book["id"],
         "reader_id": test_reader["id"]

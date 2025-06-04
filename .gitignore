@@ -1,4 +1,4 @@
 *.DS_Store
 .env
 .flake8
-test.py
+pytest.ini
