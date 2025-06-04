@@ -14,13 +14,14 @@ RESTful API для управления библиотечным каталог�
 
 2. **Создайте `.env` файл на основе `.env.example`**:
    ```env
-   POSTGRES_USER=postgres
-   POSTGRES_PASSWORD=postgres
-   POSTGRES_DB=library_postgres
-   DATABASE_URL=postgresql://postgres:postgres@postgres:5432/library_postgres
-   SECRET_KEY=your_secret_key
-   ALGORITHM=HS256
-   ACCESS_TOKEN_EXPIRE_MINUTES=30
+    DB_USER=postgres
+    DB_PASS=postgres
+    DB_HOST=postgres
+    DB_PORT=5432
+    DB_NAME=library_postgres
+    SECRET_KEY=secret-key
+    ALGORITHM=HS256
+    ACCESS_TOKEN_EXPIRE_MINUTES=30
    ```
 
 3. **Запустите проект с помощью Docker Compose**:
